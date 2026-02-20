@@ -62,7 +62,7 @@ claude mcp add weekplan-mcp-server -e WEEKPLAN_URL=http://localhost:3000 -- node
 
 Replace `/absolute/path/to/weekplan-mcp-server` with the actual path where you cloned the repo.
 
-Or edit `~/.claude/claude_desktop_config.json` directly (see the Claude Desktop section below — the format is the same).
+Or edit `claude_desktop_config.json` directly (see the Claude Desktop section below — the format is the same).
 
 ---
 
@@ -70,7 +70,7 @@ Or edit `~/.claude/claude_desktop_config.json` directly (see the Claude Desktop 
 
 Edit your Claude Desktop config file:
 
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **macOS:** `~/Library/'Application Support'/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 - **Linux:** `~/.config/Claude/claude_desktop_config.json`
 
