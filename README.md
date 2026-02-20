@@ -62,6 +62,8 @@ claude mcp add weekplan-mcp-server -e WEEKPLAN_URL=http://localhost:3000 -- node
 
 Replace `/absolute/path/to/weekplan-mcp-server` with the actual path where you cloned the repo.
 
+Or edit `~/.claude.json` to add it to a specific project.
+
 Or edit `claude_desktop_config.json` directly (see the Claude Desktop section below — the format is the same).
 
 ---
