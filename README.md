@@ -1,6 +1,6 @@
 # WeekPlan MCP Server
 
-An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that gives AI assistants like Claude the ability to manage recipes and ingredients in your WeekPlan app via its REST API.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that gives AI assistants like Claude the ability to manage recipes and ingredients in your WeekPlan app via its REST API. See [WeekPlan](https://github.com/antonderegt/week-plan) for the main app. See [WeekPlan Watch[(https://github.com/antonderegt/week-plan-watch) for an Apple Watch companion app.
 
 ## What It Does
 
