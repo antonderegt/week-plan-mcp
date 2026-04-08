@@ -3,6 +3,8 @@ import { z } from "zod";
 import { ApiClient } from "../api-client.js";
 import { slugify } from "../slugify.js";
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 export function registerRecipeTools(
   server: McpServer,
   client: ApiClient
@@ -27,7 +29,7 @@ export function registerRecipeTools(
 
   server.tool(
     "weekplan_add_recipe",
-    "Add or update a recipe with its ingredients list and cooking steps. Each ingredient references a name and quantity/unit. Missing ingredients are created automatically.",
+    "Add or update a recipe with its ingredients list and cooking steps. Each ingredient references a name and quantity/unit. Missing ingredients are created automatically. Always use Dutch for the name, ingredient names, and steps.",
     {
       name: z.string().min(1).describe("Recipe name"),
       ingredients: z
@@ -43,6 +45,7 @@ export function registerRecipeTools(
     },
     { idempotentHint: true },
     async ({ name, ingredients, steps }) => {
+      const capitalizedName = cap(name);
       const existing = await client.getIngredients();
       const existingByName = new Map(
         existing.map((i) => [i.name.toLowerCase(), i])
@@ -51,12 +54,13 @@ export function registerRecipeTools(
       const createdIds: string[] = [];
 
       for (const ing of ingredients) {
-        if (!existingByName.has(ing.ingredientName.toLowerCase())) {
-          const id = slugify(ing.ingredientName);
-          await client.upsertIngredient(id, ing.ingredientName, ing.unit);
-          existingByName.set(ing.ingredientName.toLowerCase(), {
+        const ingName = cap(ing.ingredientName);
+        if (!existingByName.has(ingName.toLowerCase())) {
+          const id = slugify(ingName);
+          await client.upsertIngredient(id, ingName, ing.unit);
+          existingByName.set(ingName.toLowerCase(), {
             id,
-            name: ing.ingredientName,
+            name: ingName,
             unit: ing.unit,
           });
           createdIds.push(id);
@@ -64,7 +68,8 @@ export function registerRecipeTools(
       }
 
       const recipeIngredients = ingredients.map((ing) => {
-        const found = existingByName.get(ing.ingredientName.toLowerCase())!;
+        const ingName = cap(ing.ingredientName);
+        const found = existingByName.get(ingName.toLowerCase())!;
         return {
           ingredientId: found.id,
           quantity: ing.quantity,
@@ -72,10 +77,10 @@ export function registerRecipeTools(
         };
       });
 
-      const recipeId = slugify(name);
-      await client.upsertRecipe(recipeId, name, recipeIngredients, steps);
+      const recipeId = slugify(capitalizedName);
+      await client.upsertRecipe(recipeId, capitalizedName, recipeIngredients, steps);
 
-      const lines = [`Recipe saved: id="${recipeId}", name="${name}"`];
+      const lines = [`Recipe saved: id="${recipeId}", name="${capitalizedName}"`];
       if (createdIds.length > 0) {
         lines.push(`Auto-created ingredients: ${createdIds.join(", ")}`);
       }
@@ -88,7 +93,7 @@ export function registerRecipeTools(
 
   server.tool(
     "weekplan_edit_recipe",
-    "Edit an existing recipe by its id. All fields are optional — only the fields you provide will be updated. Use this to rename a recipe, translate it, change steps, or replace ingredients.",
+    "Edit an existing recipe by its id. All fields are optional — only the fields you provide will be updated. Use this to rename a recipe, translate it, change steps, or replace ingredients. Always use Dutch for the name, ingredient names, and steps.",
     {
       id: z.string().min(1).describe("Recipe id to edit (slug, e.g. 'chicken-soup')"),
       name: z.string().min(1).optional().describe("New recipe name"),
@@ -115,7 +120,7 @@ export function registerRecipeTools(
         };
       }
 
-      const mergedName = name ?? current.name;
+      const mergedName = cap(name ?? current.name);
       const mergedSteps = steps ?? current.steps;
 
       let mergedIngredients = current.ingredients;
@@ -128,12 +133,13 @@ export function registerRecipeTools(
         );
 
         for (const ing of ingredients) {
-          if (!existingByName.has(ing.ingredientName.toLowerCase())) {
-            const newId = slugify(ing.ingredientName);
-            await client.upsertIngredient(newId, ing.ingredientName, ing.unit);
-            existingByName.set(ing.ingredientName.toLowerCase(), {
+          const ingName = cap(ing.ingredientName);
+          if (!existingByName.has(ingName.toLowerCase())) {
+            const newId = slugify(ingName);
+            await client.upsertIngredient(newId, ingName, ing.unit);
+            existingByName.set(ingName.toLowerCase(), {
               id: newId,
-              name: ing.ingredientName,
+              name: ingName,
               unit: ing.unit,
             });
             createdIds.push(newId);
@@ -141,7 +147,8 @@ export function registerRecipeTools(
         }
 
         mergedIngredients = ingredients.map((ing) => {
-          const found = existingByName.get(ing.ingredientName.toLowerCase())!;
+          const ingName = cap(ing.ingredientName);
+          const found = existingByName.get(ingName.toLowerCase())!;
           return {
             ingredientId: found.id,
             quantity: ing.quantity,
