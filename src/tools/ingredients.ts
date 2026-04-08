@@ -61,4 +61,35 @@ export function registerIngredientTools(
       };
     }
   );
+
+  server.tool(
+    "weekplan_edit_ingredient",
+    "Edit an existing ingredient by id. Supply only the fields you want to change; omitted fields keep their current values. The ingredient id never changes, so recipe references stay intact.",
+    {
+      id: z.string().min(1).describe("Ingredient id to edit"),
+      name: z.string().min(1).optional().describe("New display name"),
+      unit: z.string().min(1).optional().describe("New unit of measurement"),
+    },
+    { idempotentHint: true },
+    async ({ id, name, unit }) => {
+      const ingredients = await client.getIngredients();
+      const current = ingredients.find((i) => i.id === id);
+      if (!current) {
+        return {
+          isError: true,
+          content: [{ type: "text", text: `Ingredient "${id}" not found.` }],
+        };
+      }
+      const mergedName = name ?? current.name;
+      const mergedUnit = unit ?? current.unit;
+      await client.upsertIngredient(id, mergedName, mergedUnit);
+      const changes: string[] = [];
+      if (mergedName !== current.name) changes.push(`name "${current.name}" → "${mergedName}"`);
+      if (mergedUnit !== current.unit) changes.push(`unit "${current.unit}" → "${mergedUnit}"`);
+      const summary = changes.length > 0 ? changes.join(", ") : "no changes";
+      return {
+        content: [{ type: "text", text: `Ingredient "${id}" updated: ${summary}.` }],
+      };
+    }
+  );
 }
